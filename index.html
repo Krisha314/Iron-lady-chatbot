@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Iron Lady - AI Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: shine 20s linear infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            animation: fadeIn 0.5s ease-out;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bot-message {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+            color: #2d3748;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 16px 20px;
+            background: #f7fafc;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #a0aec0;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        .input-area {
+            padding: 20px;
+            background: rgba(247, 250, 252, 0.8);
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .send-button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .quick-questions {
+            padding: 0 20px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #4c51bf;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.3);
+            border-radius: 3px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+
+        @media (max-width: 600px) {
+            .chatbot-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .quick-questions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="header">
+            <h1>🏆 Iron Lady Leadership Programs</h1>
+            <p>Your AI Assistant for Leadership Excellence</p>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="message bot-message">
+                Hello! I'm your AI assistant for Iron Lady Leadership Programs. I'm here to help you learn about our transformative leadership courses and answer any questions you might have. How can I assist you today?
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="quick-questions">
+            <div class="quick-btn" onclick="askQuestion('What programs does Iron Lady offer?')">Programs Offered</div>
+            <div class="quick-btn" onclick="askQuestion('What is the program duration?')">Duration</div>
+            <div class="quick-btn" onclick="askQuestion('Is the program online or offline?')">Format</div>
+            <div class="quick-btn" onclick="askQuestion('Are certificates provided?')">Certificates</div>
+            <div class="quick-btn" onclick="askQuestion('Who are the mentors?')">Mentors</div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" class="message-input" id="messageInput" placeholder="Type your question here..." onkeypress="handleKeyPress(event)">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced knowledge base with more detailed information
+        const knowledgeBase = {
+            programs: {
+                keywords: ['programs', 'courses', 'offerings', 'what do you offer', 'available programs', 'types of programs'],
+                response: "Iron Lady Leadership Programs offers several comprehensive leadership development courses:\n\n🎯 **Executive Leadership Mastery** - Advanced leadership strategies for C-suite executives\n🚀 **Emerging Leaders Program** - For mid-level managers transitioning to senior roles\n💼 **Women in Leadership** - Specialized program empowering women leaders\n🌟 **Digital Leadership Excellence** - Leadership in the digital transformation era\n🤝 **Team Leadership Fundamentals** - Essential skills for team leaders\n\nEach program is designed to unlock your leadership potential and drive organizational success!"
+            },
+            duration: {
+                keywords: ['duration', 'how long', 'length', 'time', 'weeks', 'months', 'period'],
+                response: "Our program durations are designed to fit different leadership needs:\n\n⏰ **Executive Leadership Mastery**: 12 weeks (3 months)\n⏰ **Emerging Leaders Program**: 8 weeks (2 months)\n⏰ **Women in Leadership**: 10 weeks\n⏰ **Digital Leadership Excellence**: 6 weeks\n⏰ **Team Leadership Fundamentals**: 4 weeks\n\nEach program includes weekly interactive sessions, practical assignments, and ongoing mentorship support throughout the duration."
+            },
+            format: {
+                keywords: ['online', 'offline', 'format', 'delivery', 'mode', 'virtual', 'physical', 'location'],
+                response: "Iron Lady Leadership Programs offers flexible learning formats:\n\n💻 **Hybrid Learning Model**:\n• Live virtual sessions with expert facilitators\n• Interactive online workshops and simulations\n• Optional in-person networking events and workshops\n• Self-paced learning modules accessible 24/7\n\n🏢 **In-Person Options**:\n• Corporate on-site training available\n• Executive retreats and intensive workshops\n• Leadership bootcamps in major cities\n\nYou can choose the format that best fits your schedule and learning preferences!"
+            },
+            certificates: {
+                keywords: ['certificate', 'certification', 'credential', 'accreditation', 'diploma', 'qualification'],
+                response: "Yes! Iron Lady Leadership Programs provides comprehensive certification:\n\n🏆 **Professional Certificates**:\n• Internationally recognized leadership certificates\n• Digital badges for LinkedIn and professional profiles\n• Continuing education credits (CEUs) available\n• Partnership with accredited business schools\n\n📜 **Certificate Features**:\n• Detailed competency assessment\n• Portfolio of leadership projects\n• Peer and mentor endorsements\n• Alumni network access\n\nAll certificates are verifiable and enhance your professional credibility in the leadership field!"
+            },
+            mentors: {
+                keywords: ['mentors', 'coaches', 'instructors', 'teachers', 'facilitators', 'trainers', 'who teaches'],
+                response: "Our world-class team of mentors and coaches includes:\n\n👩‍💼 **Executive Coaches**:\n• Former Fortune 500 CEOs and executives\n• Harvard Business School and Wharton faculty\n• Leadership consultants with 15+ years experience\n\n🌟 **Industry Experts**:\n• Tech leaders from Google, Microsoft, and Apple\n• Government and non-profit leadership specialists\n• International business transformation experts\n\n🎓 **Academic Leaders**:\n• PhD holders in Organizational Psychology\n• Published authors on leadership topics\n• Research experts in leadership development\n\nEach participant is matched with a mentor based on their career goals and industry focus!"
+            },
+            cost: {
+                keywords: ['cost', 'price', 'fee', 'tuition', 'pricing', 'how much', 'expensive', 'affordable'],
+                response: "Iron Lady Leadership Programs offers competitive pricing with flexible payment options:\n\n💰 **Investment Range**:\n• Team Leadership Fundamentals: $1,299\n• Digital Leadership Excellence: $1,899\n• Emerging Leaders Program: $2,499\n• Women in Leadership: $2,199\n• Executive Leadership Mastery: $3,999\n\n💳 **Payment Options**:\n• Monthly installment plans available\n• Corporate group discounts (15-25% off)\n• Early bird discounts (10% off)\n• Scholarship programs for qualifying candidates\n\nWe believe leadership development is an investment in your future success!"
+            },
+            enrollment: {
+                keywords: ['enroll', 'register', 'sign up', 'apply', 'admission', 'how to join', 'start'],
+                response: "Ready to begin your leadership journey? Here's how to enroll:\n\n📝 **Enrollment Process**:\n1. Complete our online leadership assessment\n2. Schedule a consultation with our admissions team\n3. Choose your preferred program and format\n4. Submit application with professional references\n5. Receive program materials and access credentials\n\n🚀 **Next Steps**:\n• Visit our website to start your application\n• Join our upcoming free webinar series\n• Download our program brochures\n• Connect with our alumni network\n\nPrograms start monthly, so you can begin when it's convenient for you!"
+            }
+        };
+
+        function findBestMatch(userInput) {
+            const input = userInput.toLowerCase();
+            let bestMatch = null;
+            let maxScore = 0;
+
+            for (const [category, data] of Object.entries(knowledgeBase)) {
+                let score = 0;
+                for (const keyword of data.keywords) {
+                    if (input.includes(keyword.toLowerCase())) {
+                        score += keyword.length; // Longer matches get higher scores
+                    }
+                }
+                if (score > maxScore) {
+                    maxScore = score;
+                    bestMatch = data.response;
+                }
+            }
+
+            if (maxScore === 0) {
+                // Fallback responses for unmatched queries
+                const fallbackResponses = [
+                    "I'd be happy to help you with information about Iron Lady Leadership Programs! Could you please be more specific about what you'd like to know? You can ask about our programs, duration, format, certificates, or mentors.",
+                    "That's an interesting question! While I specialize in Iron Lady Leadership Programs, I can tell you about our courses, mentorship, certification process, or program formats. What specific aspect interests you most?",
+                    "I'm here to provide information about Iron Lady Leadership Programs. Feel free to ask about our available programs, course duration, online/offline options, certification process, or our expert mentors and coaches!"
+                ];
+                return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+            }
+
+            return bestMatch;
+        }
+
+        function addMessage(message, isUser = false) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            if (!isUser) {
+                // Format bot messages with better styling
+                messageDiv.innerHTML = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            } else {
+                messageDiv.textContent = message;
+            }
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'block';
+            const chatArea = document.getElementById('chatArea');
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'none';
+        }
+
+        function simulateTypingDelay() {
+            return new Promise(resolve => {
+                const delay = Math.random() * 2000 + 1000; // 1-3 seconds
+                setTimeout(resolve, delay);
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            addMessage(message, true);
+            input.value = '';
+            
+            showTypingIndicator();
+            
+            await simulateTypingDelay();
+            
+            hideTypingIndicator();
+            
+            const response = findBestMatch(message);
+            addMessage(response);
+        }
+
+        function askQuestion(question) {
+            document.getElementById('messageInput').value = question;
+            sendMessage();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Auto-focus input on page load
+        window.onload = function() {
+            document.getElementById('messageInput').focus();
+        };
+    </script>
+</body>
+</html>
