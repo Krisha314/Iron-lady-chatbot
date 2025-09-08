@@ -55,7 +55,7 @@ python app.py
 Open your browser and visit:
 
 Local  Server 
-http://127.0.0.1:5000
+http://127.0.0.1:5000/
 
 Usage
 Ask questions like:
